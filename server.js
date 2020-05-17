@@ -4,6 +4,7 @@ const UserService = require('./service.js')
 const JWT = require('jsonwebtoken')
 const passport = require('passport')
 require('./auth/passport')
+
 const app = express()
 
 const startServer = async () => {
@@ -25,7 +26,7 @@ const startServer = async () => {
   app.post('/signup', async (req, res) => {
     const user = await UserService.read(req.body)
     if (user) {
-      res.send('User already exists')
+      res.status(500).send('User already exists!')
       return
     }
     const savedUser = await UserService.save(req.body)
@@ -36,7 +37,7 @@ const startServer = async () => {
   app.get('/login', async (req, res) => {
     const user = await UserService.read(req.body)
     if (!user) {
-      res.send('User doesnt exists!')
+      res.status(500).send('User doesnt exists!')
     } else {
       const token = signToken(savedUser)
       res.send(token)
@@ -45,7 +46,7 @@ const startServer = async () => {
 
   app.get('/verify', passportJWT, async (req, res) => {
     console.log('user', req.user)
-    res.send(req.user)
+    res.send({ verified_user_details: req.user })
   })
 
   app.listen(5000, () => {
