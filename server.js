@@ -3,10 +3,11 @@ const loaders = require('./loaders')
 const UserService = require('./service.js')
 const JWT = require('jsonwebtoken')
 const passport = require('passport')
+const cors = require('cors')
 require('./auth/passport')
 
 const app = express()
-
+app.use(cors())
 const startServer = async () => {
   await loaders(app)
   const passportJWT = passport.authenticate('jwt', { session: false })
@@ -25,12 +26,15 @@ const startServer = async () => {
 
   app.post('/signup', async (req, res) => {
     const user = await UserService.read(req.body)
+    console.log('sdfsf', req.body)
     if (user) {
+      console.log('CAME HERE')
       res.status(500).send('User already exists!')
       return
     }
     const savedUser = await UserService.save(req.body)
     const token = signToken(savedUser)
+    console.log('token', token)
     res.send(token)
   })
 

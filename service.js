@@ -1,7 +1,7 @@
 const User = require('./user_model')
 
 const read = async (data) => {
-  const user = await User.findOne(data)
+  const user = await User.findOne({ username: data.username })
   return user
 }
 
