@@ -66,8 +66,9 @@ const startServer = async () => {
     function (req, res) {
       // Successful authentication, redirect home.
       console.log('Authenticated by google successfully!')
-      const token = signToken(savedUser)
-      res.send(token)
+      res.redirect('/auth/success')
+      // const token = signToken(savedUser)
+      // res.send(token)
     }
   )
 
