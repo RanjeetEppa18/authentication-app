@@ -1,16 +1,20 @@
 const express = require('express')
 const loaders = require('./loaders')
-const UserService = require('./service.js')
+const UserService = require('./userService.js')
 const JWT = require('jsonwebtoken')
 const passport = require('passport')
-const cors = require('cors')
 require('./auth/passport')
 
 const app = express()
-app.use(cors())
+app.use(passport.initialize())
+app.use(passport.session())
+
 const startServer = async () => {
   await loaders(app)
   const passportJWT = passport.authenticate('jwt', { session: false })
+  const passportGoogleAuth2 = passport.authenticate('google', {
+    scope: ['email', 'profile'],
+  })
 
   const signToken = (user) => {
     return JWT.sign(
@@ -26,26 +30,49 @@ const startServer = async () => {
 
   app.post('/signup', async (req, res) => {
     const user = await UserService.read(req.body)
-    console.log('sdfsf', req.body)
+    console.log('Request body:', req.body)
     if (user) {
-      console.log('CAME HERE')
       res.status(500).send('User already exists!')
       return
     }
-    const savedUser = await UserService.save(req.body)
+    const savedUser = await UserService.save(req.body, 'local')
+    if (!savedUser) {
+      res
+        .status(500)
+        .send('Something went wrong!, Try with google authentication')
+    }
     const token = signToken(savedUser)
     console.log('token', token)
     res.send(token)
   })
 
   app.get('/login', async (req, res) => {
-    const user = await UserService.read(req.body)
+    const user = await UserService.read(req.body, 'login')
     if (!user) {
-      res.status(500).send('User doesnt exists!')
+      res
+        .status(500)
+        .send(`User doesn't exists OR Try with Google authentication`)
     } else {
       const token = signToken(savedUser)
       res.send(token)
     }
+  })
+
+  app.get('/auth/google', passportGoogleAuth2)
+
+  app.get(
+    '/auth/google-callback',
+    passport.authenticate('google', { failureRedirect: '/login' }),
+    function (req, res) {
+      // Successful authentication, redirect home.
+      console.log('Authenticated by google successfully!')
+      const token = signToken(savedUser)
+      res.send(token)
+    }
+  )
+
+  app.get('/auth/success', async (req, res) => {
+    res.send('Yo! 🤟 authenticated, Keep up the good work!')
   })
 
   app.get('/verify', passportJWT, async (req, res) => {
