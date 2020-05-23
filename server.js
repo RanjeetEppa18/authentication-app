@@ -73,7 +73,9 @@ const startServer = async () => {
   )
 
   app.get('/auth/success', async (req, res) => {
-    res.send('Yo! 🤟 authenticated, Keep up the good work!')
+    res.send(
+      '<html><body><h1>Authentication successfull ! 🎉</h1></body></html>'
+    )
   })
 
   app.get('/verify', passportJWT, async (req, res) => {
